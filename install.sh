@@ -31,6 +31,22 @@ readonly C_RED='\033[0;31m'
 readonly C_BOLD='\033[1m'
 readonly C_NC='\033[0m'
 
+# Function to check connectivity with IPv4 fallback
+check_connectivity() {
+    local url=$1
+    if curl -s --head --connect-timeout 5 "$url" > /dev/null; then
+        return 0
+    elif curl -4 -s --head --connect-timeout 5 "$url" > /dev/null; then
+        echo -e "${C_YELLOW}Notice: IPv6 connection failed, switching to IPv4 for git operations.${C_NC}"
+        git config --global http.postBuffer 524288000
+        # Force IPv4 for git
+        export GIT_SSH_COMMAND='ssh -o IPQoS=throughput -4'
+        return 0
+    else
+        return 1
+    fi
+}
+
 check_root() {
     if [[ ${EUID} -ne 0 ]]; then
         echo -e "${C_RED}✗ This script must be run as root${C_NC}"
@@ -60,6 +76,11 @@ install_git() {
 clone_repo() {
     echo -e "${C_YELLOW}▶ Preparing installation files...${C_NC}"
     
+    # Pre-check connectivity to GitHub
+    if ! check_connectivity "https://github.com"; then
+         echo -e "${C_YELLOW}Warning: GitHub might be unreachable. Retrying with IPv4 forced...${C_NC}"
+    fi
+
     if [ -d "${INSTALL_DIR}" ]; then
         echo -e "${C_CYAN}  Updating existing repository in ${INSTALL_DIR}...${C_NC}"
         cd "${INSTALL_DIR}"
@@ -67,7 +88,11 @@ clone_repo() {
         git reset --hard origin/main --quiet || git reset --hard origin/master --quiet
     else
         echo -e "${C_CYAN}  Cloning repository to ${INSTALL_DIR}...${C_NC}"
-        git clone --quiet "${REPO_URL}" "${INSTALL_DIR}"
+        # Try normal clone first, then IPv4 forced if failed
+        if ! git clone --quiet "${REPO_URL}" "${INSTALL_DIR}"; then
+             echo -e "${C_YELLOW}Clone failed. Retrying with IPv4...${C_NC}"
+             git clone --quiet --config core.sshCommand="ssh -4" "${REPO_URL}" "${INSTALL_DIR}"
+        fi
         cd "${INSTALL_DIR}"
     fi
     
