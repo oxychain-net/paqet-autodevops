@@ -1,0 +1,81 @@
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ source ~/.bashrc
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ go version
+go: downloading go1.25 (linux/amd64)
+go: download go1.25 for linux/amd64: toolchain not available
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$     ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N ""
+Generating public/private ed25519 key pair.
+Created directory '/home/weup/.ssh'.
+Your identification has been saved in /home/weup/.ssh/id_ed25519
+Your public key has been saved in /home/weup/.ssh/id_ed25519.pub
+The key fingerprint is:
+SHA256:MVprbSQpfBKjGDoVA8v+seqnVQ2hhmJzv4iaMiUdFT4 weup@Studio
+The key's randomart image is:
++--[ED25519 256]--+
+|..=..oo          |
+|.+.=oo.o .       |
+|==.=E.+ B .      |
+|+.= ..o* B       |
+| o o o..S o      |
+|. = = .. .       |
+| + = .           |
+|+.o.             |
+|==o              |
++----[SHA256]-----+
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ cat /home/weup/.ssh/id_ed25519
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+QyNTUxOQAAACDpE8E489uaoTUpY6laFahnMxjUso6vRXQAZNwSFXbdPgAAAJBKak8bSmpP
+GwAAAAtzc2gtZWQyNTUxOQAAACDpE8E489uaoTUpY6laFahnMxjUso6vRXQAZNwSFXbdPg
+AAAEC/T/1g8/vxqc60vj4A2B5XIaAXev7zy7sWfttV9sT4aOkTwTjz25qhNSljqVoVqGcz
+GNSyjq9FdABk3BIVdt0+AAAAC3dldXBAU3R1ZGlvAQI=
+-----END OPENSSH PRIVATE KEY-----
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ cat
+^C
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ cat /home/weup/.ssh/id_ed25519.pub
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOkTwTjz25qhNSljqVoVqGczGNSyjq9FdABk3BIVdt0+ weup@Studio
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ ssh -4 -f -N -D 127.0.0.1:1080 \
+    -o ServerAliveInterval=60 \
+    -o ServerAliveCountMax=3 \
+    -o ExitOnForwardFailure=yes \
+    root@89.251.9.113
+The authenticity of host '89.251.9.113 (89.251.9.113)' can't be established.
+ED25519 key fingerprint is SHA256:0XE/V4zua7sCBVZm5yiwiLfTB2F1dKVJDUVRhPkB05s.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '89.251.9.113' (ED25519) to the list of known hosts.
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ export http_proxy="socks5h://127.0.0.1:1080"
+export https_proxy="socks5h://127.0.0.1:1080"
+export all_proxy="socks5h://127.0.0.1:1080"
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ sudo tee /etc/apt/apt.conf.d/99proxy > /dev/null <<EOF
+Acquire::http::Proxy "socks5h://127.0.0.1:1080";
+Acquire::https::Proxy "socks5h://127.0.0.1:1080";
+EOF
+[sudo] password for weup:
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ curl https://ifconfig.me
+2a14:7981:2002:20c::weup@Studio:/mnt/c/Users/memar/Projects/paqet$
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ bash upgrade_go_wsl.sh
+Detected System Architecture: amd64 (x86_64)
+Fetching Go version metadata...
+Target Version: go1.25.7
+Target Filename: go1.25.7.linux-amd64.tar.gz
+Expected SHA256: 12e6d6a191091ae27dc31f6efc630e3a3b8ba409baf3573d955b196fdf086005
+Attempting download from: https://go.dev/dl/go1.25.7.linux-amd64.tar.gz (IPv4 forced)
+################################################################################################################# 100.0%################################################################################################################# 100.0%
+Download successful via IPv4.
+Verifying checksum...
+Checksum verified.
+Removing old installation...
+Extracting...
+Fixing incorrect PATH order in /home/weup/.bashrc...
+Fixed PATH in /home/weup/.bashrc
+Fixing incorrect PATH order in /home/weup/.profile...
+Fixed PATH in /home/weup/.profile
+Go go1.25.7 installed successfully!
+Please restart your shell or run: source ~/.bashrc (or ~/.zshrc)
+go version go1.25.7 linux/amd64
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ source ~/.bashrc
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$ go version
+go version go1.25.7 linux/amd64
+weup@Studio:/mnt/c/Users/memar/Projects/paqet$

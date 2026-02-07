@@ -38,8 +38,8 @@ readonly SYSTEMD_DIR="/etc/systemd/system"
 readonly BACKUP_DIR="${STATE_DIR}/backups"
 
 # GitHub
-readonly GITHUB_REPO="https://github.com/yourusername/paqet"
-readonly GITHUB_API="https://api.github.com/repos/yourusername/paqet/releases/latest"
+readonly GITHUB_REPO="https://github.com/oxychain-net/paqet"
+readonly GITHUB_API="https://api.github.com/repos/oxychain-net/paqet/releases/latest"
 
 # Colors
 readonly C_RED='\033[0;31m'

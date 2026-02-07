@@ -1,10 +1,11 @@
 #!/bin/bash
 #===============================================================================
 # Paqet AutoDevOps - One-Step Installer
-# Version: 1.0.0 | Author: oxychain-net | License: MIT
+# Version: 1.1.0 | Author: oxychain-net | License: MIT
 #
 # Purpose:
-#   Complete automated installation of Paqet with prerequisites
+#   Bootstrap the installation by cloning the repo and running the installer.
+#   Solves issues with piped execution (curl | bash).
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/oxychain-net/paqet-autodevops/main/install.sh | sudo bash
@@ -13,13 +14,20 @@
 
 set -euo pipefail
 
-readonly SCRIPT_VERSION="1.0.0"
-readonly BASE_URL="https://raw.githubusercontent.com/oxychain-net/paqet-autodevops/main"
+# Redirect stdin from tty if available to support interactive prompts when piped
+if [ ! -t 0 ] && [ -e /dev/tty ]; then
+    exec < /dev/tty
+fi
+
+readonly SCRIPT_VERSION="1.1.0"
+readonly REPO_URL="https://github.com/oxychain-net/paqet-autodevops.git"
+readonly INSTALL_DIR="/opt/paqet-autodevops"
 
 # Colors
 readonly C_GREEN='\033[0;32m'
 readonly C_YELLOW='\033[1;33m'
 readonly C_CYAN='\033[0;36m'
+readonly C_RED='\033[0;31m'
 readonly C_BOLD='\033[1m'
 readonly C_NC='\033[0m'
 
@@ -30,65 +38,66 @@ check_root() {
     fi
 }
 
-print_header() {
-    clear
+install_git() {
+    if ! command -v git &> /dev/null; then
+        echo -e "${C_YELLOW}▶ Installing git...${C_NC}"
+        if [ -f /etc/debian_version ]; then
+            apt-get update -qq && apt-get install -y -qq git
+        elif [ -f /etc/redhat-release ]; then
+            yum install -y -q git
+        elif [ -f /etc/arch-release ]; then
+            pacman -Sy --noconfirm git
+        elif [ -f /etc/alpine-release ]; then
+            apk add git
+        else
+            echo -e "${C_RED}✗ Unsupported distribution. Please install git manually.${C_NC}"
+            exit 1
+        fi
+        echo -e "${C_GREEN}✓ Git installed${C_NC}"
+    fi
+}
+
+clone_repo() {
+    echo -e "${C_YELLOW}▶ Preparing installation files...${C_NC}"
+    
+    if [ -d "${INSTALL_DIR}" ]; then
+        echo -e "${C_CYAN}  Updating existing repository in ${INSTALL_DIR}...${C_NC}"
+        cd "${INSTALL_DIR}"
+        git fetch --all --quiet
+        git reset --hard origin/main --quiet || git reset --hard origin/master --quiet
+    else
+        echo -e "${C_CYAN}  Cloning repository to ${INSTALL_DIR}...${C_NC}"
+        git clone --quiet "${REPO_URL}" "${INSTALL_DIR}"
+        cd "${INSTALL_DIR}"
+    fi
+    
+    chmod +x *.sh
+    echo -e "${C_GREEN}✓ Files prepared${C_NC}"
+}
+
+main() {
+    check_root
+    
     echo ""
     echo -e "${C_CYAN}════════════════════════════════════════════════════${C_NC}"
     echo -e "${C_BOLD}${C_GREEN}Paqet AutoDevOps - One-Step Installer v${SCRIPT_VERSION}${C_NC}"
     echo -e "${C_CYAN}════════════════════════════════════════════════════${C_NC}"
     echo ""
-}
-
-download_script() {
-    local script_name="$1"
-    local url="${BASE_URL}/${script_name}"
     
-    echo -e "${C_YELLOW}▶ Downloading ${script_name}...${C_NC}"
+    install_git
+    clone_repo
     
-    curl -fsSL "${url}" -o "/tmp/${script_name}"
-    chmod +x "/tmp/${script_name}"
-    
-    echo -e "${C_GREEN}✓ ${script_name} downloaded${C_NC}"
-}
-
-main() {
-    check_root
-    print_header
-    
-    echo "This will install Paqet with all prerequisites."
+    echo -e "${C_BOLD}Starting installation process...${C_NC}"
     echo ""
-    echo "Installation steps:"
-    echo "  1. Install system dependencies (Go, libpcap, etc.)"
-    echo "  2. Optimize Linux kernel for networking"
-    echo "  3. Install Paqet"
-    echo "  4. Configure Paqet (interactive wizard)"
-    echo ""
-    
-    read -p "Press Enter to continue or Ctrl+C to cancel..."
-    
-    # Download scripts
-    echo ""
-    echo "Downloading installer scripts..."
-    echo ""
-    
-    download_script "paqet-prerequisites.sh"
-    download_script "paqet-installer.sh"
-    download_script "paqet-manager.sh"
-    
-    echo ""
-    echo -e "${C_BOLD}Starting installation...${C_NC}"
-    echo ""
-    
-    # Run prerequisites
-    bash /tmp/paqet-prerequisites.sh
     
     # Run installer
-    bash /tmp/paqet-installer.sh --full-install
+    # Note: --full-install will automatically run paqet-prerequisites.sh if found
+    ./paqet-installer.sh --full-install
     
-    # Install scripts permanently
+    # Install management scripts
     echo ""
-    echo "Installing management scripts..."
-    cp /tmp/paqet-*.sh /usr/local/bin/
+    echo -e "${C_YELLOW}▶ Installing management scripts to /usr/local/bin...${C_NC}"
+    cp paqet-*.sh /usr/local/bin/
     
     echo ""
     echo -e "${C_GREEN}${C_BOLD}═══════════════════════════════════════════════════${C_NC}"
