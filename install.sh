@@ -7,7 +7,7 @@
 #   Complete automated installation of Paqet with prerequisites
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/.../install.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/oxychain-net/paqet-autodevops/main/install.sh | sudo bash
 #
 #===============================================================================
 
